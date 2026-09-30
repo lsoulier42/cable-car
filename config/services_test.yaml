@@ -1,0 +1,8 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # Scripted Symfony AI platform used by the functional tests: no provider call,
+    # deterministic turns (see App\Tests\Support\ScriptedPlatform).
+    App\Tests\Support\ScriptedPlatform: ~

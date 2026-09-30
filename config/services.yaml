@@ -1,0 +1,51 @@
+parameters:
+    locale: fr
+    app_env: '%env(APP_ENV)%'
+    app_version: '%env(APP_VERSION)%'
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+    App\OpenApi\OpenApiFactoryDecorator:
+        decorates: api_platform.openapi.factory
+        arguments: ['@.inner']
+
+    # --- Cable Car: agent harness -------------------------------------------
+    # Adding a tool only requires implementing CodingToolInterface: the interface
+    # is auto-tagged (see CableCarExtension) and picked up by the registry.
+    App\Agent\Tool\ToolRegistry:
+        arguments:
+            $tools: !tagged_iterator cable_car.tool
+
+    App\Agent\Model\CodingModelRegistry:
+        arguments:
+            $models: !tagged_iterator cable_car.model
+            $defaultName: '%cable_car.default_model%'
+
+    App\Agent\Runner\AgentLimits:
+        factory: ['App\Agent\Runner\AgentLimits', 'fromArray']
+        arguments: ['%cable_car.limits%']
+
+    App\Agent\Process\SanitizedProcessRunner:
+        arguments:
+            $path: '%cable_car.commands.path%'
+            $home: '%kernel.project_dir%/var/agent-home'
+
+    App\Agent\Workspace\PathGuardFactory:
+        arguments:
+            $workspaceConfig: '%cable_car.workspace%'
+
+    App\Agent\Workspace\WorkspaceManager:
+        arguments:
+            $workspacesRoot: '%cable_car.workspaces_root%'
+
+    # Execution policy for run_command.
+    App\Agent\Tool\Command\CommandPolicy:
+        arguments:
+            $commandsConfig: '%cable_car.commands%'

@@ -1,0 +1,131 @@
+# Cable Car — agent harness configuration.
+#
+# The workspace root is the only place the filesystem tools may touch.
+cable_car:
+    workspaces_root: '%env(CABLE_CAR_WORKSPACES_ROOT)%'
+    default_model: '%env(CABLE_CAR_MODEL)%'
+    models:
+        default:
+            label: 'Ollama · %env(CABLE_CAR_OLLAMA_MODEL)%'
+            platform: 'ai.platform.ollama'
+            model: '%env(CABLE_CAR_OLLAMA_MODEL)%'
+            # Provider options forwarded as-is (Ollama specific). Reasoning models
+            # stay usable for tool calling when their thinking is disabled.
+            options:
+                think: false
+                num_predict: 1024
+        # OpenAI-compatible gateway (Golden Gate, post-MVP target).
+        golden_gate:
+            label: 'Golden Gate · %env(CABLE_CAR_GOLDEN_GATE_MODEL)%'
+            platform: 'ai.platform.generic.golden_gate'
+            model: '%env(CABLE_CAR_GOLDEN_GATE_MODEL)%'
+    limits:
+        max_iterations: 20
+        max_tool_calls: 50
+        max_tool_calls_per_turn: 4
+        # Local reasoning models can be slow: raise CABLE_CAR_MAX_RUN_SECONDS for them.
+        max_run_seconds: '%env(int:CABLE_CAR_MAX_RUN_SECONDS)%'
+        max_command_seconds: 120
+        max_tool_output_bytes: 32768
+        max_file_read_bytes: 131072
+        max_file_write_bytes: 262144
+        max_list_entries: 500
+        max_search_results: 100
+    workspace:
+        ignored_directories:
+            - '.git'
+            - '.idea'
+            - '.vscode'
+            - 'vendor'
+            - 'node_modules'
+            - 'var/cache'
+            - 'var/log'
+            - 'public/build'
+            - 'frontend/dist'
+            - 'frontend/node_modules'
+        denied_paths:
+            - '.env'
+            - '.env.*'
+            - '*.pem'
+            - '*.key'
+            - '*.p12'
+            - '*.pfx'
+            - '*.jks'
+            - 'id_rsa*'
+            - 'id_ed25519*'
+            - 'id_ecdsa*'
+            - '.ssh/*'
+            - '.aws/*'
+            - '.gnupg/*'
+            - '.git-credentials'
+            - '.netrc'
+            - '.npmrc'
+            - '.docker/config.json'
+            - 'auth.json'
+            - 'config/secrets/*'
+            - 'config/jwt/*'
+    commands:
+        allow:
+            - 'php'
+            - 'bin/console'
+            - 'bin/composer'
+            - 'composer'
+            - 'vendor/bin/phpunit'
+            - 'vendor/bin/phpstan'
+            - 'vendor/bin/phpcs'
+            - 'vendor/bin/php-cs-fixer'
+            - 'vendor/bin/rector'
+            - 'node'
+            - 'npm'
+            - 'npx'
+            - 'git'
+        deny_patterns:
+            - '/\bgit\s+push\b/'
+            - '/\bgit\s+remote\s+(add|set-url|remove|rename)\b/'
+            - '/\bgit\s+(commit|reset\s+--hard|clean\s+-[a-z]*f|checkout\s+--|restore\s+--source|rebase|merge|cherry-pick)\b/'
+            - '/\b(sudo|su|doas)\b/'
+            - '/\b(sh|bash|zsh|dash|fish|env)\s+-c\b/'
+            - '/\b(curl|wget|nc|netcat|ssh|scp|rsync|telnet)\b/'
+            - '/[;&|<>`]/'
+            - '/\$\{?\w/'
+            - '/\.\.\//'
+        git_subcommands:
+            - 'status'
+            - 'diff'
+            - 'log'
+            - 'show'
+            - 'ls-files'
+            - 'grep'
+            - 'rev-parse'
+            - 'describe'
+            - 'blame'
+            - 'shortlog'
+            - 'branch'
+            - 'tag'
+        composer_subcommands:
+            - 'install'
+            - 'update'
+            - 'validate'
+            - 'dump-autoload'
+            - 'show'
+            - 'outdated'
+            - 'audit'
+            - 'check-platform-reqs'
+            - 'why'
+        npm_subcommands:
+            - 'ci'
+            - 'install'
+            - 'test'
+            - 'run'
+            - 'ls'
+            - 'outdated'
+        path: '/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin'
+
+when@test:
+    cable_car:
+        workspaces_root: '%kernel.project_dir%/var/workspaces-test'
+        models:
+            default:
+                label: 'Scripted (tests)'
+                platform: 'App\Tests\Support\ScriptedPlatform'
+                model: 'scripted-test-model'

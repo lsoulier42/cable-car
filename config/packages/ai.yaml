@@ -1,0 +1,14 @@
+# Symfony AI platforms used by Cable Car.
+#
+# Cable Car never talks to a provider SDK directly: it resolves a platform
+# service id + model name from `cable_car.models` configuration.
+ai:
+    platform:
+        # Local development provider (no API key required).
+        ollama:
+            endpoint: '%env(OLLAMA_ENDPOINT)%'
+        # OpenAI-compatible gateway — Golden Gate target (post-MVP integration).
+        generic:
+            golden_gate:
+                base_url: '%env(GOLDEN_GATE_BASE_URL)%'
+                api_key: '%env(GOLDEN_GATE_API_KEY)%'

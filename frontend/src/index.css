@@ -1,0 +1,77 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Breakpoints — sidebar collapses below 992px */
+  --breakpoint-mid: 62rem; /* 992px */
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  /* ---- Surfaces (strict dark mode) ---- */
+  --color-app: #0e1117; /* page background */
+  --color-surface-1: #161a22;
+  --color-surface-2: #1c212c;
+  --color-surface-3: #232a38;
+
+  /* ---- Borders ---- */
+  --color-line: #262d3b;
+  --color-line-strong: #323c4f;
+
+  /* ---- Brand ---- */
+  --color-primary: #6c8cff;
+  --color-primary-hover: #5276f2;
+  --color-accent: #a78bfa;
+
+  /* ---- Semantic ---- */
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  /* ---- Text ---- */
+  --color-ink: #e2e8f0;
+  --color-muted: #8b93a5;
+  --color-faint: #5c6474;
+
+  /* ---- Radii ---- */
+  --radius-card: 0.875rem; /* 14px */
+  --radius-box: 0.625rem; /* 10px */
+  --radius-field: 0.6rem; /* buttons, inputs */
+
+  /* ---- Shadows ---- */
+  --shadow-card: 0 8px 24px rgb(0 0 0 / 0.3);
+  --shadow-soft: 0 4px 12px rgb(0 0 0 / 0.25);
+
+  /* ---- Layout ---- */
+  --spacing-sidebar: 264px;
+  --spacing-content: 1320px;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-app);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* Subtle dark scrollbars */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 8px;
+    border: 2px solid var(--color-app);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-line-strong);
+  }
+}

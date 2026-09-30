@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+if (file_exists($autoload = dirname(__DIR__).'/vendor/autoload.php')) {
+    require $autoload;
+}
+
+if (is_file($phpunit = dirname(__DIR__).'/vendor/phpunit/phpunit/phpunit')) {
+    require $phpunit;
+
+    exit;
+}
+
+if (is_file($simple = dirname(__DIR__).'/vendor/symfony/phpunit-bridge/bin/simple-phpunit.php')) {
+    require $simple;
+
+    exit;
+}
+
+echo "Unable to find PHPUnit. Did you run `composer install`?\n";
+exit(1);

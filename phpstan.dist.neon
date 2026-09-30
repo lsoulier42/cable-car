@@ -1,0 +1,16 @@
+parameters:
+    level: 6
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+        - tests/
+    ignoreErrors:
+        # Base traits provided for consumer entities; intentionally not used inside the kit.
+        -
+            identifier: trait.unused
+            path: src/Trait/SoftDeleteTrait.php
+        -
+            identifier: trait.unused
+            path: src/Trait/SlugTrait.php

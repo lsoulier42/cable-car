@@ -1,0 +1,29 @@
+{
+	# Options globales FrankenPHP.
+	# Prod (itération suivante) : définir FRANKENPHP_CONFIG="worker /var/www/html/public/index.php" ;
+	# en dev la variable est vide → mode classic (comportement PHP-FPM).
+	frankenphp {
+		{$FRANKENPHP_CONFIG}
+	}
+
+	# HTTP simple : le port publié est géré par Docker, pas d'HTTPS automatique ici.
+	auto_https off
+}
+
+:8080 {
+	root * /var/www/html/public
+	encode zstd br gzip
+
+	# API Symfony / API Platform (+ Swagger UI /api/docs).
+	@api path /api /api/*
+	handle @api {
+		php_server
+	}
+
+	# SPA React buildée (make frontend-build) : assets puis fallback index.html.
+	handle {
+		root * /var/www/html/frontend/dist
+		try_files {path} /index.html
+		file_server
+	}
+}

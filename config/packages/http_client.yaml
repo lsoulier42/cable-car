@@ -1,0 +1,9 @@
+# Model providers are the only outbound HTTP traffic of this application.
+#
+# Local models can take a while to load (and reasoning models to answer), so the
+# default 60 second socket timeout is not enough: give them room.
+framework:
+    http_client:
+        default_options:
+            timeout: 900
+            max_duration: 1200

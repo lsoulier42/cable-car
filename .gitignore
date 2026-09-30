@@ -1,0 +1,39 @@
+/public/build/fonts/glyphicons-*
+/public/build/images/glyphicons-*
+
+.php-version
+.composer
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/build/
+/public/bundles/
+/var/*
+!/var/.gitkeep
+/vendor/
+###< symfony/framework-bundle ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/.phpunit.cache/
+###< symfony/phpunit-bridge ###
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+.idea
+/docker/db/postgresql/
+!/docker/db/.gitkeep
+###> squizlabs/php_codesniffer ###
+/.phpcs-cache
+###< squizlabs/php_codesniffer ###
+
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###
+
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###
+CLAUDE.md

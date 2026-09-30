@@ -1,0 +1,105 @@
+services:
+  database:
+    image: postgres:18.2-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - "./docker/db/postgresql:/var/lib/postgresql/data"
+    ports:
+      - "${DATABASE_HOST_PORT:-5532}:${DATABASE_PORT}"
+    environment:
+      POSTGRES_PASSWORD: "${DATABASE_PASSWORD}"
+      POSTGRES_USER: "${DATABASE_USER}"
+      POSTGRES_DB: "${DATABASE_NAME}"
+
+  # FrankenPHP = serveur web (Caddy) + PHP embarqué.
+  # Sert l'API Symfony (/api) et la SPA buildée (frontend/dist) sur la même origine.
+  php:
+    build:
+      context: ./docker/frankenphp
+      args:
+        UID: "${HOST_UID:-1000}"
+        GID: "${HOST_GROUP_ID:-1000}"
+    restart: unless-stopped
+    tty: true
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:8080/api/docs"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    # The agent runs inside this container: it needs the host Ollama to be
+    # reachable (OLLAMA_ENDPOINT=http://host.docker.internal:11434 in .env.local),
+    # and project workspaces mounted under var/workspaces (already the case).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Ollama usually runs on the host: override the endpoint inside Docker.
+      OLLAMA_ENDPOINT: "${OLLAMA_ENDPOINT_DOCKER:-http://host.docker.internal:11434}"
+    volumes:
+      - ".:/var/www/html"
+      - "~/.composer:/home/docker/.composer"
+      - "~/.ssh:/home/docker/.ssh"
+      - "./docker/frankenphp/Caddyfile:/etc/frankenphp/Caddyfile:ro"
+    ports:
+      - "${APP_PORT}:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  # Consomme les messages asynchrones (remplace l'ancien supervisord de l'image PHP).
+  worker:
+    build:
+      context: ./docker/frankenphp
+      args:
+        UID: "${HOST_UID:-1000}"
+        GID: "${HOST_GROUP_ID:-1000}"
+    restart: unless-stopped
+    # L'image FrankenPHP embarque un healthcheck (API admin Caddy) inutile pour un worker CLI.
+    healthcheck:
+      disable: true
+    entrypoint: ["php"]
+    command: ["bin/console", "messenger:consume", "async", "--memory-limit=192M", "--time-limit=3600", "-vv"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      OLLAMA_ENDPOINT: "${OLLAMA_ENDPOINT_DOCKER:-http://host.docker.internal:11434}"
+    volumes:
+      - ".:/var/www/html"
+      - "~/.composer:/home/docker/.composer"
+      - "~/.ssh:/home/docker/.ssh"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  # Dev only: Vite dev server with HMR. The host `npm run dev` works too.
+  # Production assets are built with `make frontend-build` and served by FrankenPHP.
+  frontend:
+    image: node:24-alpine
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_API_PROXY_TARGET: http://php:8080
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    volumes:
+      - "./frontend:/app"
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      php:
+        condition: service_healthy
+
+  mailer:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILER_SMTP_PORT:-1126}:1025"
+      - "${MAILER_HTTP_PORT:-1181}:8025"
+
+volumes:
+  frontend_node_modules:
